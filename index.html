@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="//www.amcharts.com/lib/4/core.js"></script>
+    <script src="//www.amcharts.com/lib/4/charts.js"></script>
+    <script src="//www.amcharts.com/lib/4/themes/animated.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/kelly.js"></script>
+    <script src="svgPaths.js"></script>
+
+    <script src="https://unpkg.com/vue"></script>
+    <!-- Full bundle -->
+    <script src="https://unpkg.com/buefy/dist/buefy.min.js"></script>
+    <!-- Individual components -->
+    <script src="https://unpkg.com/buefy/dist/components/table"></script>
+    <script src="https://unpkg.com/buefy/dist/components/input"></script>
+    <title>Visualization</title>
+</head>
+
+<body>
+    <section class="section">
+        <div class="container is-max-desktop">
+            <div class="notification is-light">
+                <div class="columns is-mobile">
+                    <div class="column is-half is-offset-one-quarter">
+                        <h1>visualization</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container is-max-desktop">
+            <div class="notification is-light">
+                <div class="columns is-mobile">
+                    <div class="column is-11 is-offset-1">bar chart~~~</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container is-max-desktop">
+            <div class="notification is-light">
+                <div class="columns is-mobile">
+                    <canvas class="column is-11 is-offset-1" id="myChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container is-max-desktop">
+            <div class="notification is-light">
+                <div class="columns is-mobile">
+                    <div class="column is-11 is-offset-1">amchart~~~</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container is-max-desktop">
+            <div class="notification is-light">
+                <div class="columns is-mobile">
+                    <div class="column" id="chartdiv" style="width:40vw; height:80vh;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container" id="app">
+
+            <div class="card" v-for="booking in bookings">
+                <header class="card-header">
+                    <p class="card-header-title">
+                        {{booking.name}}
+                    </p>
+                </header>
+                <div class="card-content">
+                    <div class="content">
+                        {{booking.numTickets}}
+                    </div>
+                </div>
+            </div>
+            <br>
+
+            <nav class="pagination" role="navigation" aria-label="pagination">
+                <button class="pagination-previous" v-bind:disabled="isFirstPage" v-on:click="fetchData(limit, offset - limit)">Previous</button>
+                <button class="pagination-next" :disabled="isLastPage" v-on:click="fetchData(limit, offset + limit)">Next page</button>
+                <ul class="pagination-list">
+                    <li>
+                        <a class="pagination-link" @click="fetchData(limit, 0)">1</a>
+                    </li>
+                    <li>
+                        <span class="pagination-ellipsis">&hellip;</span>
+                    </li>
+                    <li>
+                        <a v-if="!isFirstPage" class="pagination-link"
+                            @click="fetchData(limit, offset - limit)">{{currentPageNumber - 1}}</a>
+                    </li>
+                    <li>
+                        <a class="pagination-link is-current"
+                            @click="fetchData(limit, offset)">{{currentPageNumber}}</a>
+                    </li>
+                    <li>
+                        <a v-if="!isLastPage" class="pagination-link"
+                            @click="fetchData(limit, offset + limit)">{{currentPageNumber + 1}}</a>
+                    </li>
+                    <li>
+                        <span class="pagination-ellipsis">&hellip;</span>
+                    </li>
+                    <li>
+                        <a class="pagination-link"
+                            @click="fetchData(limit, (Math.ceil(numOfRecords / limit) - 1) * limit)">{{Math.ceil(numOfRecords
+                            / limit)}}</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="columns">
+                <b-input class="column" v-model="limit"></b-input>
+                <div class="column">
+                    <button class="button is-warning" @click="fetchData(limit, 0)">GO!</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <script>
+        const labels = ["1", "2", "3", "4", "5", "6+"]
+
+        const data = {
+            labels: labels,
+            datasets: [{
+                // label: 'My First Dataset',
+                data: [516.8, 739.5, 624.9, 481.2, 197.1, 85.6],
+                backgroundColor: [
+                    // 'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderColor: [
+                    // 'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
+            }],
+        };
+
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: "Domestic Households by Household Size",
+                            font: {
+                                size: 18
+                            },
+                            padding: 20
+                        }
+                    },
+                    y: {
+                        suggestedMin: 0,
+                        suggestedMax: 1.0,
+                        title: {
+                            display: true,
+                            text: "Number of domestic household - ('000)",
+                            font: {
+                                size: 18
+                            },
+                            padding: 20
+                        },
+                        ticks: {
+                            stepSize: 0.2
+                        }
+                    },
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Household size',
+                        font: {
+                            size: 24
+                        },
+                        padding: 20
+                    },
+                    legend: {
+                        display: false
+                    }
+                },
+            }
+        };
+
+        var myChart = new Chart(
+            document.getElementById('myChart'),
+            config
+        );
+        ///////////////////////////////////////////////////
+        am4core.useTheme(am4themes_animated);
+        am4core.useTheme(am4themes_kelly);
+
+        var chart = am4core.createFromConfig({
+            "titles": [{
+                "text": "Population by age group",
+                "fontSize": 20,
+                "marginTop": 20,
+                "marginBottom": 20
+            }],
+            "data": [{
+                "name": "0-14",
+                "value": 867500
+            }, {
+                "name": "15-24",
+                "value": 655900
+            }, {
+                "name": "25-34",
+                "value": 1028600
+            }, {
+                "name": "35-44",
+                "value": 1172100
+            }, {
+                "name": "45-54",
+                "value": 1132900
+            }, {
+                "name": "55-64",
+                "value": 1228700
+            }, {
+                "name": "65 and over",
+                "value": 1310100
+            }],
+            "series": [{
+                "type": "PictorialStackedSeries",
+                "dataFields": {
+                    "value": "value",
+                    "category": "name"
+                },
+                "maskSprite": {
+                    "path": psyPath,
+                    "rotation": 180
+                },
+                "alignLabels": true,
+            }],
+        }, "chartdiv", am4charts.SlicedChart);
+//////////////////////////////////////////////////////////////////////
+        new Vue({
+            el: '#app',
+            data: {
+                numOfRecords: parseInt("<%= numOfRecords %>"),
+                bookings: [],
+                currentPageNumber: 1,
+                limit: 2,
+                offset: 0,
+            },
+            computed: {
+                isFirstPage: function () { return (this.offset < this.limit) },
+                isLastPage: function () { return (this.offset + this.limit >= this.numOfRecords) },
+            },
+            methods: {
+                fetchData: async function (limit, offset) {
+                    var response = await fetch("/bookings/vaginate?limit=" + limit + "&offset=" + offset);
+                    if (response.ok) {
+                        var bookings = await response.json();
+                        this.bookings = bookings;
+                        this.limit = Math.max(limit, 2) || 2;
+                        this.offset = offset;
+                        this.currentPageNumber = Math.floor(offset / limit) + 1;
+                        // `this` inside methods points to the Vue instance
+                    } else {
+                        alert(response.statusText);
+                    }
+                },
+            },
+            mounted: function () {
+                this.fetchData(this.limit, this.offset);
+            },
+        })
+    </script>
+</body>
+
+</html>
